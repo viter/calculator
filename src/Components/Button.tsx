@@ -1,3 +1,5 @@
+import { forwardRef } from 'react';
+
 interface ButtonProps {
   action?: () => void;
   className: string;
@@ -5,10 +7,14 @@ interface ButtonProps {
   id: string;
 }
 
-export default function Button({ action, className, val, id }: ButtonProps) {
-  return (
-    <button id={id} onClick={action} className={className}>
-      {val}
-    </button>
-  );
-}
+const Button = forwardRef(
+  ({ action, className, val, id }: ButtonProps, ref: React.LegacyRef<HTMLButtonElement>) => {
+    return (
+      <button id={id} onClick={action} className={className} ref={ref}>
+        {val}
+      </button>
+    );
+  },
+);
+
+export default Button;

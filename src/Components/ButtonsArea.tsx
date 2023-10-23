@@ -1,95 +1,81 @@
-import { useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import Button from './Button';
-import { highlightButton, removeHighlight, buttonAction, ButtonType } from '../utils/buttonsevents';
+import { highlightButton, removeHighlight } from '../utils/buttonsevents';
 
-export default function ButtonsArea({ screenOn }: { screenOn: boolean }) {
+const ButtonsArea = forwardRef(({}, ref) => {
   const numbers =
     'text-slate-100 bg-neutral-500 rounded min-w-[70px] hover:bg-neutral-400 active:bg-red-700';
   const fn = 'text-slate-100 bg-zinc-600 hover:bg-zinc-500 active:bg-red-700 rounded min-w-[70px]';
 
-  useEffect(() => {
-    const app = document.getElementById('main') as HTMLDivElement;
-    const buttons: ButtonType[] = [
-      { btn: 'cancel', btnKey: 'Escape', el: document.getElementById('cancel') as HTMLElement },
-      { btn: 'del', btnKey: 'Backspace', el: document.getElementById('del') as HTMLElement },
-      { btn: 'lb', btnKey: '(', el: document.getElementById('lb') as HTMLElement },
-      { btn: 'rb', btnKey: ')', el: document.getElementById('rb') as HTMLElement },
-      { btn: 'b0', btnKey: '0', el: document.getElementById('b0') as HTMLElement },
-      { btn: 'b1', btnKey: '1', el: document.getElementById('b1') as HTMLElement },
-      { btn: 'b2', btnKey: '2', el: document.getElementById('b2') as HTMLElement },
-      { btn: 'b3', btnKey: '3', el: document.getElementById('b3') as HTMLElement },
-      { btn: 'b4', btnKey: '4', el: document.getElementById('b4') as HTMLElement },
-      { btn: 'b5', btnKey: '5', el: document.getElementById('b5') as HTMLElement },
-      { btn: 'b6', btnKey: '6', el: document.getElementById('b6') as HTMLElement },
-      { btn: 'b7', btnKey: '7', el: document.getElementById('b7') as HTMLElement },
-      { btn: 'b8', btnKey: '8', el: document.getElementById('b8') as HTMLElement },
-      { btn: 'b9', btnKey: '9', el: document.getElementById('b9') as HTMLElement },
-      { btn: 'pi', btnKey: 'p', el: document.getElementById('pi') as HTMLElement },
-      { btn: 'dot', btnKey: '.', el: document.getElementById('dot') as HTMLElement },
-      { btn: 'pow', btnKey: '^', el: document.getElementById('pow') as HTMLElement },
-      { btn: 'sqrt', btnKey: 's', el: document.getElementById('sqrt') as HTMLElement },
-      { btn: 'plus', btnKey: '+', el: document.getElementById('plus') as HTMLElement },
-      { btn: 'minus', btnKey: '-', el: document.getElementById('minus') as HTMLElement },
-      { btn: 'multiply', btnKey: '*', el: document.getElementById('multiply') as HTMLElement },
-      { btn: 'divide', btnKey: '/', el: document.getElementById('divide') as HTMLElement },
-      { btn: 'equal', btnKey: 'Enter', el: document.getElementById('equal') as HTMLElement },
-    ];
+  // Все що потрібне для рендеренгу кнопок, який відбувається в порядку їх внесення до мапи.
+  const buttons = new Map()
+    .set('cancel', { btnKey: 'Escape', val: 'C', class: fn, el: useRef() })
+    .set('del', { btnKey: 'Backspace', val: 'Del', class: fn + ' col-span-2', el: useRef() })
+    .set('lb', { btnKey: '(', val: '(', class: fn, el: useRef() })
+    .set('rb', { btnKey: ')', val: ')', class: fn, el: useRef() })
 
-    app.addEventListener('keyup', handleKeyUp);
-    app.addEventListener('keydown', handleKeyDown);
+    .set('b7', { btnKey: '7', val: '7', class: numbers, el: useRef() })
+    .set('b8', { btnKey: '8', val: '8', class: numbers, el: useRef() })
+    .set('b9', { btnKey: '9', val: '9', class: numbers, el: useRef() })
+    .set('pow', { btnKey: '^', val: 'pow', class: fn, el: useRef() })
+    .set('sqrt', { btnKey: 's', val: 'sqrt', class: fn, el: useRef() })
 
-    function handleKeyUp(e: KeyboardEvent) {
+    .set('b4', { btnKey: '4', val: '4', class: numbers, el: useRef() })
+    .set('b5', { btnKey: '5', val: '5', class: numbers, el: useRef() })
+    .set('b6', { btnKey: '6', val: '6', class: numbers, el: useRef() })
+    .set('plus', { btnKey: '+', val: '+', class: fn, el: useRef() })
+    .set('minus', { btnKey: '-', val: '-', class: fn, el: useRef() })
+
+    .set('b1', { btnKey: '1', val: '1', class: numbers, el: useRef() })
+    .set('b2', { btnKey: '2', val: '2', class: numbers, el: useRef() })
+    .set('b3', { btnKey: '3', val: '3', class: numbers, el: useRef() })
+    .set('multiply', { btnKey: '*', val: 'x', class: fn, el: useRef() })
+    .set('divide', { btnKey: '/', val: '/', class: fn, el: useRef() })
+
+    .set('pi', { btnKey: 'p', val: 'Pi', class: numbers, el: useRef() })
+    .set('b0', { btnKey: '0', val: '0', class: numbers, el: useRef() })
+    .set('dot', { btnKey: '.', val: '.', class: numbers, el: useRef() })
+    .set('equal', { btnKey: 'Enter', val: '=', class: fn + ' col-span-2', el: useRef() });
+
+  // Перекидаю функції handleKeyUp і handleKeyDown в парент компонент App,
+  // бо вони мають викликаються по клавіатурній події елемента main, який є в паренті.
+  // Таким чином ціла сторінка слухає клавіатурні події. Можна це обмежити тільки самим калькулятором, перекинувши
+  // події безпосередньо діву калькулятора в App компоненті а не main елементу в тому ж App компоненті.
+  useImperativeHandle(ref, () => ({
+    handleKeyUp(e: KeyboardEvent) {
+      // preventDefault застосовано заради клавіші Enter, щоб вона не спрацьовувала по своєму призначенню.
+      // Тут вона служить як кнопка '='.
       e.preventDefault();
-      if (screenOn) {
-        const button: ButtonType | undefined = buttons.find((entry) => entry.btnKey === e.key);
-        removeHighlight(button);
-        buttonAction(button);
+      const button = Array.from(buttons).find((entry) => entry[1].btnKey === e.key);
+      if (button) {
+        removeHighlight({ btn: button[0], el: button[1].el.current });
       }
-    }
+    },
 
-    function handleKeyDown(e: KeyboardEvent) {
+    handleKeyDown(e: KeyboardEvent) {
       e.preventDefault();
-      if (screenOn) {
-        const button: ButtonType | undefined = buttons.find((entry) => entry.btnKey === e.key);
-        highlightButton(button);
+      const button = Array.from(buttons).find((entry) => entry[1].btnKey === e.key);
+      if (button) {
+        highlightButton({ btn: button[0], el: button[1].el.current });
       }
-    }
-
-    return () => {
-      app.removeEventListener('keyup', handleKeyUp);
-      app.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [screenOn]);
+    },
+  }));
 
   return (
     <div className="grid grid-cols-5 gap-1 min-h-[300px] mb-2">
-      <Button val="C" id="cancel" className={fn} />
-      <Button val="Del" id="del" className={fn + ' col-span-2'} />
-      <Button val="(" id="lb" className={fn} />
-      <Button val=")" id="rb" className={fn} />
-
-      <Button val="7" id="b7" className={numbers} />
-      <Button val="8" id="b8" className={numbers} />
-      <Button val="9" id="b9" className={numbers} />
-      <Button val="pow" id="pow" className={fn} />
-      <Button val="sqrt" id="sqrt" className={fn} />
-
-      <Button val="4" id="b4" className={numbers} />
-      <Button val="5" id="b5" className={numbers} />
-      <Button val="6" id="b6" className={numbers} />
-      <Button val="+" id="plus" className={fn} />
-      <Button val="-" id="minus" className={fn} />
-
-      <Button val="1" id="b1" className={numbers} />
-      <Button val="2" id="b2" className={numbers} />
-      <Button val="3" id="b3" className={numbers} />
-      <Button val="x" id="multiply" className={fn} />
-      <Button val="/" id="divide" className={fn} />
-
-      <Button val="Pi" id="pi" className={numbers} />
-      <Button val="0" id="b0" className={numbers} />
-      <Button val="." id="dot" className={numbers} />
-      <Button val="=" id="equal" className={fn + ' col-span-2'} />
+      {Array.from(buttons).map((button) => (
+        <Button
+          key={button[0]}
+          val={button[1].val}
+          id={button[0]}
+          className={button[1].class}
+          // кнопки мають реагувати на події клавіатури, тому присвоюю їм рефки
+          //щоб мати доступ до їх html властивостей (в даному випадку до їх класів)
+          ref={button[1].el}
+        />
+      ))}
     </div>
   );
-}
+});
+
+export default ButtonsArea;
