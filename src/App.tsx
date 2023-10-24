@@ -21,6 +21,15 @@ export default function App() {
   function toggleScreen() {
     setScreenOn(!screenOn);
   }
+
+  // updateScreen передаю пропсами аж до компонента Button через ButtonsArea.
+  // cb - це колбек, який кожна кнопка має свій. Таким чином за допомогою функції updateScreen
+  // результат роботи кнопок може апдейтити екран (компонент Screen)
+  function updateScreen(cb: (screenValue: string) => string) {
+    const val = cb(screenValue);
+    setScreenValue(val);
+  }
+
   return (
     <main
       id="main"
@@ -41,7 +50,7 @@ export default function App() {
         <Title />
         <Screen screenValue={screenValue} screenOn={screenOn} />
         <ControlBar action={toggleScreen} screenOn={screenOn} />
-        <ButtonsArea ref={buttonsRef} />
+        <ButtonsArea ref={buttonsRef} updateScreen={updateScreen} screenOn={screenOn} />
       </div>
     </main>
   );
