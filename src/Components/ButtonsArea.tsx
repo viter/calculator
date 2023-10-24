@@ -5,11 +5,24 @@ import { highlightButton, removeHighlight, actions } from '../utils/buttonsevent
 interface ButtonsAreaProps {
   updateScreen: (cb: () => string) => void;
   screenOn: boolean;
+  darkMode: boolean;
 }
 
-const ButtonsArea = forwardRef(({ updateScreen, screenOn }: ButtonsAreaProps, ref) => {
-  const numbers = 'text-slate-100 bg-neutral-500 rounded min-w-[70px] hover:bg-neutral-400 active:bg-red-700';
-  const fn = 'text-slate-100 bg-zinc-600 hover:bg-zinc-500 active:bg-red-700 rounded min-w-[70px]';
+const ButtonsArea = forwardRef(({ updateScreen, screenOn, darkMode }: ButtonsAreaProps, ref) => {
+  // Визначення кольору тла в залежності чи включений темний режим робиться не так для організації оформлення
+  // режиму відображення (це робиться через dark: модифікатор), як для уніфікації кольорів тла і передачі
+  // їх як змінних у функцї removeHighlight та highlightButton
+  const bgColorNumbers = darkMode ? 'bg-gray-600' : 'bg-neutral-500';
+  const bgColorFn = darkMode ? 'bg-slate-700' : 'bg-zinc-600';
+
+  // Для імітації неробочої клавіатури при виключеному режимі колір підсвідки і ктивного стану роблю таким як основний :)
+  const hoverNumbersBgColor = screenOn ? (darkMode ? 'bg-gray-500' : 'bg-neutral-400') : bgColorNumbers;
+  const hoverFnsBgColor = screenOn ? (darkMode ? 'bg-slate-600' : 'bg-zinc-500') : bgColorFn;
+  const activeBgColorNumbers = screenOn ? 'bg-red-700' : bgColorNumbers;
+  const activeBgColorFn = screenOn ? 'bg-red-700' : bgColorFn;
+
+  const numbers = `text-slate-100 ${bgColorNumbers} rounded min-w-[70px] hover:${hoverNumbersBgColor} active:${activeBgColorNumbers} dark:active:${activeBgColorNumbers} dark:hover:${hoverNumbersBgColor}`;
+  const fn = `text-slate-100 ${bgColorFn} hover:${hoverFnsBgColor} active:${activeBgColorFn} dark:active:${activeBgColorFn} rounded min-w-[70px] dark:hover:${hoverFnsBgColor}`;
 
   // Все що потрібне для рендеренгу кнопок, який відбувається в порядку їх внесення до мапи.
   const buttons = new Map()
@@ -52,7 +65,7 @@ const ButtonsArea = forwardRef(({ updateScreen, screenOn }: ButtonsAreaProps, re
       e.preventDefault();
       const button = Array.from(buttons).find((entry) => entry[1].btnKey === e.key);
       if (button) {
-        removeHighlight({ btn: button[0], el: button[1].el.current });
+        removeHighlight({ btn: button[0], el: button[1].el.current }, bgColorNumbers, bgColorFn);
         updateScreen(button[1].action);
       }
     },
@@ -61,7 +74,7 @@ const ButtonsArea = forwardRef(({ updateScreen, screenOn }: ButtonsAreaProps, re
       e.preventDefault();
       const button = Array.from(buttons).find((entry) => entry[1].btnKey === e.key);
       if (button) {
-        highlightButton({ btn: button[0], el: button[1].el.current });
+        highlightButton({ btn: button[0], el: button[1].el.current }, bgColorNumbers, bgColorFn);
       }
     },
   }));
