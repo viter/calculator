@@ -3,20 +3,20 @@ export interface ButtonType {
   el: HTMLElement;
 }
 
-export function highlightButton(button: ButtonType) {
+export function highlightButton(button: ButtonType, bgColorNumbers: string, bgColorFn: string) {
   if (['cancel', 'del', 'lb', 'rb', 'pow', 'sqrt', 'plus', 'minus', 'multiply', 'divide', 'equal'].includes(button.btn)) {
-    button.el.classList.remove('bg-zinc-600');
+    button.el.classList.remove(bgColorFn);
   } else {
-    button.el.classList.remove('bg-neutral-500');
+    button.el.classList.remove(bgColorNumbers);
   }
   button.el.classList.add('bg-red-600');
 }
 
-export function removeHighlight(button: ButtonType) {
+export function removeHighlight(button: ButtonType, bgColorNumbers: string, bgColorFn: string) {
   if (['cancel', 'del', 'lb', 'rb', 'pow', 'sqrt', 'plus', 'minus', 'multiply', 'divide', 'equal'].includes(button.btn)) {
-    button.el.classList.add('bg-zinc-600');
+    button.el.classList.add(bgColorFn);
   } else {
-    button.el.classList.add('bg-neutral-500');
+    button.el.classList.add(bgColorNumbers);
   }
   button.el.classList.remove('bg-red-600');
 }
@@ -214,18 +214,26 @@ export const actions = {
   },
 
   sqrtClicked: (screenValue: string) => {
-    return String(eval(`Math.sqrt(${screenValue})`));
+    try {
+      return String(eval(`Math.sqrt(${screenValue})`));
+    } catch (error) {
+      return 'Error';
+    }
   },
 
   equalClicked: (screenValue: string) => {
-    screenValue = screenValue.replace(/x/g, '*');
-    screenValue = screenValue.replace(/\^/g, '**');
-    return String(eval(screenValue));
+    try {
+      screenValue = screenValue.replace(/x/g, '*');
+      screenValue = screenValue.replace(/\^/g, '**');
+      return String(eval(screenValue));
+    } catch (error) {
+      return 'Error';
+    }
   },
 };
 
 function resetAfterError(val: string): string {
-  if (val === 'Infinity' || val === 'NaN') {
+  if (val === 'Infinity' || val === 'NaN' || val === 'Error') {
     return '0';
   }
   return val;
